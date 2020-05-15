@@ -2423,7 +2423,7 @@ class App {
         if(!op->get_configurable())
             throw ConfigError::NotConfigurable(item.fullname());
 
-        if(op->empty()) {
+        //if(op->empty()) {
             // Flag parsing
             if(op->get_expected_min() == 0) {
                 auto res = config_formatter_->to_flag(item);
@@ -2432,10 +2432,19 @@ class App {
                 op->add_result(res);
 
             } else {
+                int min_num = (std::min)(op->get_type_size_min(), op->get_items_expected_min());
+                int max_num = op->get_items_expected_max();
+                std::cout << op->get_lnames()[0] << std::endl;
                 op->add_result(item.inputs);
                 op->run_callback();
+                auto results = op->results();
+                for (const auto& result : results) std::cout << result << std::endl;
+                // if we only partially completed a type then add an empty string for later processing
+                if(min_num > 0 && op->get_type_size_max() != min_num && item.inputs.size() % op->get_type_size_max() != 0) {
+                    op->add_result(std::string{});
+                }
             }
-        }
+        //}
 
         return true;
     }
@@ -2727,9 +2736,12 @@ class App {
 
         // Get a reference to the pointer to make syntax bearable
         Option_p &op = *op_ptr;
+        std::cout << "Found option: " << op->get_lnames()[0] << ". ";
 
         int min_num = (std::min)(op->get_type_size_min(), op->get_items_expected_min());
         int max_num = op->get_items_expected_max();
+        std::cout << "Min expected: " << min_num << std::endl;
+        std::cout << "Max expected: " << max_num << std::endl;
 
         // Make sure we always eat the minimum for unlimited vectors
         int collected = 0;    // total number of arguments collected
@@ -2802,6 +2814,7 @@ class App {
             rest = "-" + rest;
             args.push_back(rest);
         }
+        std::cout << "Collected: " << collected << ", Result Count: " << result_count << std::endl;
         return true;
     }
 

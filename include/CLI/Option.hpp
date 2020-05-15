@@ -919,7 +919,7 @@ class Option : public OptionBase<Option> {
     /// Puts a result at the end
     Option *add_result(std::vector<std::string> s) {
         for(auto &str : s) {
-            _add_result(std::move(str), results_);
+            auto i = _add_result(std::move(str), results_);
         }
         current_option_state_ = option_state::parsing;
         return this;
